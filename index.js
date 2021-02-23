@@ -7,7 +7,7 @@ const {google} = require('googleapis');
 
 app.use(express.json())
 // If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
+const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
@@ -26,16 +26,21 @@ fs.readFile('credentials.json', (err, content) => {
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
+var auth2;
 function authorize(credentials, callback) {
   const {client_secret, client_id, redirect_uris} = credentials.installed;
-  const oAuth2Client = new google.auth.OAuth2(
-      client_id, client_secret, redirect_uris[0]);
+  // const oAuth2Client = new google.auth.OAuth2(
+  //     client_id, client_secret, redirect_uris[0]);
+  
+      auth2 = new google.auth.OAuth2(
+        client_id, client_secret, redirect_uris[0]);
 
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, (err, token) => {
-    if (err) return getAccessToken(oAuth2Client, callback);
-    oAuth2Client.setCredentials(JSON.parse(token));
-    callback(oAuth2Client);
+    if (err) return getAccessToken(auth2, callback);
+    auth2.setCredentials(JSON.parse(token));
+    callback(auth2);
+
   });
 }
 
@@ -110,9 +115,48 @@ module.exports = {
   listEvents
 };
 
-app.post("/",(req,res)=>{
-  const events = req.data.items;
+app.post("/api/addevent",(req,res)=>{
 
+  const summary = req.body.summary;
+  const starttime=req.body.start;
+  const endtime=req.body.end;
+  console.log(starttime)
+  // starttime = Date.now;
+  // endtime = Date.now;
+
+  var event = {
+    'summary': summary,
+    // 'description': 'A chance to eat samosa with chutney.',
+    'start': {
+      'dateTime': starttime,
+      'timeZone': 'IST'
+    },
+    'end': {
+      'dateTime': endtime,
+      'timeZone': 'IST'
+    },
+    'attendees': [],
+    // 'reminders': {
+    //   'useDefault': false,
+    //   'overrides': [
+    //     {'method': 'email', 'minutes': 24 * 60},
+    //     {'method': 'popup', 'minutes': 10}
+    //   ]
+    // },
+    'status' : 'confirmed'
+  };
+
+  cal.events.insert({
+    auth: auth2,
+    'calendarId': 'primary',
+    'resource': event
+  },(err, res2) => {
+    if (err) {
+        console.log(err);
+    } else {
+        res.send(res2.data);
+    }
+    });
 })
 
 /**
