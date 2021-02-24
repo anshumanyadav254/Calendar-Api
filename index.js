@@ -117,9 +117,9 @@ module.exports = {
 
 app.post("/api/addevent",(req,res)=>{
 
-  const summary = req.params.summary;
-  const starttime=req.params.start;
-  const endtime=req.params.end;
+  const summary = req.body.summary;
+  const starttime=req.body.start;
+  const endtime=req.body.end;
   console.log(starttime)
   // starttime = Date.now;
   // endtime = Date.now;
