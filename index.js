@@ -120,13 +120,23 @@ app.post("/api/addevent",(req,res)=>{
   const summary = req.body.summary;
   const starttime=req.body.start;
   const endtime=req.body.end;
-  console.log(starttime)
+  const description=req.body.description;
+  const at=req.body.attendees.split(",");
+  //attendees.push();
+  console.log(at)
+
+  at2 = [];
+  at.forEach(element => {
+    at2.push({"email":element})
+  });
+
+  
   // starttime = Date.now;
   // endtime = Date.now;
 
   var event = {
     'summary': summary,
-    // 'description': 'A chance to eat samosa with chutney.',
+    'description': description,
     'start': {
       'dateTime': starttime,
       'timeZone': 'IST'
@@ -135,7 +145,7 @@ app.post("/api/addevent",(req,res)=>{
       'dateTime': endtime,
       'timeZone': 'IST'
     },
-    'attendees': [],
+    'attendees': at2,
     // 'reminders': {
     //   'useDefault': false,
     //   'overrides': [
@@ -145,7 +155,7 @@ app.post("/api/addevent",(req,res)=>{
     // },
     'status' : 'confirmed'
   };
-
+  
   cal.events.insert({
     auth: auth2,
     'calendarId': 'primary',
@@ -155,6 +165,7 @@ app.post("/api/addevent",(req,res)=>{
         console.log(err);
     } else {
         res.send(res2.data);
+        console.log(res2.data)
     }
     });
 })
@@ -180,14 +191,13 @@ app.get('/api',(req,res)=>{
       events.map((event, i) => {
         const start = event.start.dateTime || event.start.date;
         //res.send(`${start} - ${event.summary}`);
-        event1 = {eventtime: start, eventsummary: event.summary};
-        eventlist.push(event1);
+         event1 = {eventtime: start, eventsummary: event.summary, description: event.description, attendees: event.attendees};
+         eventlist.push(event1);
         //eventlist = [...eventlist,event1];
 
-       // console.log(`${start} - ${event.summary}`);
 
       });
-      console.log(eventlist);
+      // console.log(eventlist);
       res.send(eventlist);
     } else {
       res.send('No upcoming events found.');
